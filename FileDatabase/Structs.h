@@ -16,12 +16,13 @@ struct database {
 
 struct table {
 	char name[40];
-	int primera_col = -1;
+	char deleted = '0'; //0 = false ; 1 = true
+	int size;
 	int block_cols;
-    char deleted = '0'; //0 = false ; 1 = true
+	int primera_col = -1;
 	int primer_reg = -1;
 	int sig_tabla = -1;
-	int size;
+
 };
 
 struct col {
@@ -31,6 +32,15 @@ struct col {
 	int sig_col = -1;
 };
 
+struct block {
+	char  * data;
+	int usado = 0;
+	int next = -1;
+};
+
+struct reg {
+	char * data;
+};
 
 database getdb(char * nombre);
 table get_tab(string db, string nombre);

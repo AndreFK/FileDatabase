@@ -5,12 +5,18 @@ database getdb(char  * name) {
 	File f(name);
 	database n;
 	if (f.open()) {
-		memcpy(n.nombre, f.read(0, sizeof(n.nombre)), sizeof(n.nombre));
-		memcpy(&n.size, f.read(50, sizeof(n.size)), sizeof(n.size));
-		memcpy(&n.bitmap, f.read(54, sizeof(n.bitmap)), sizeof(n.bitmap));
-		memcpy(&n.blocksize, f.read(58, sizeof(n.blocksize)), sizeof(n.blocksize));
-		memcpy(&n.blockcount, f.read(62, sizeof(n.blockcount)), sizeof(n.blockcount));
-		memcpy(&n.primera_tab, f.read(66, sizeof(n.primera_tab)), sizeof(n.primera_tab));
+		int pos = 0;
+		memcpy(n.nombre, f.read(pos, sizeof(n.nombre)), sizeof(n.nombre));
+		pos += sizeof(n.nombre);
+		memcpy(&n.size, f.read(pos, sizeof(n.size)), sizeof(n.size));
+		pos += sizeof(n.size);
+		memcpy(&n.bitmap, f.read(pos, sizeof(n.bitmap)), sizeof(n.bitmap));
+		pos += sizeof(n.bitmap);
+		memcpy(&n.blocksize, f.read(pos, sizeof(n.blocksize)), sizeof(n.blocksize));
+		pos += sizeof(n.blocksize);
+		memcpy(&n.blockcount, f.read(pos, sizeof(n.blockcount)), sizeof(n.blockcount));
+		pos += sizeof(n.blockcount);
+		memcpy(&n.primera_tab, f.read(pos, sizeof(n.primera_tab)), sizeof(n.primera_tab));
 		f.close();
 	}
 	//66 (0 - 49, 50 - 53, 54 - 57, 58 - 61, 62 - 65, 66 - 70)
@@ -51,10 +57,10 @@ table get_tabpos(string db, int pos) {
 	if (f.open()) {
 		database d = getdb(path);
 		int postab = sizeof(database) + d.bitmap + (pos * sizeof(table));
-		memcpy(&n.deleted, f.read(postab, sizeof(n.deleted)), sizeof(n.deleted));
-		postab += sizeof(n.deleted);
 		memcpy(&n.name, f.read(postab, sizeof(n.name)), sizeof(n.name));
 		postab += sizeof(n.name);
+		memcpy(&n.deleted, f.read(postab, sizeof(n.deleted)), sizeof(n.deleted));
+		postab += sizeof(n.deleted);
 		memcpy(&n.size, f.read(postab, sizeof(n.size)), sizeof(n.size));
 		postab += sizeof(n.size);
 		memcpy(&n.block_cols, f.read(postab, sizeof(n.block_cols)), sizeof(n.block_cols));
@@ -66,12 +72,13 @@ table get_tabpos(string db, int pos) {
 		memcpy(&n.sig_tabla, f.read(postab, sizeof(n.sig_tabla)), sizeof(n.sig_tabla));
 		f.close();
 	}
+	n.name;
 	return n;
 }
 
 table get_tab(string db, string name) {
-	string dbname = name + ".db";
-	string filepath = "databases/" + dbname;
+	string dbname = db + ".db";
+	string filepath = dbname;
 	char path[sizeof(filepath)];
 	strcpy(path, filepath.c_str());
 	File f(path);
@@ -84,7 +91,7 @@ table get_tab(string db, string name) {
 			bool eof = f.eof(postab);
 			while (!eof && postab < (sizeof(database) + d.bitmap + (2 * d.blocksize))) {
 				table t = get_tabpos(db, pos);
-				if (t.name == name && t.deleted != 1) {
+				if (t.name == name && t.deleted != '1') {
 					return t;
 				}
 				pos++;
@@ -109,4 +116,3 @@ int tabpos(string db, string name) {
 		y++;
 	} while (t.sig_tabla != -1);
 }
-
